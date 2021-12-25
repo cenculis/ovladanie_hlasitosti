@@ -1,4 +1,3 @@
-
 #include <IRremote.h>
 int input_pin = 2; //signalovy pin z IR prijimaca
 IRrecv irrecv(input_pin);
@@ -9,8 +8,6 @@ unsigned long int Vol_plus, Vol_minus;  //do tychto uklada hodnoty signalu pre +
 boolean vol1,vol2 = false; //pomocne premenne, vo while cykle ci uz ma oba signaly alebo nie
 const int  buttonPin = A2;    // the pin that the pushbutton is attached to
 const int ledPin = 8;       // the pin that the LED is attached to
-
-// Variables will change:
 int buttonPushCounter = -1;   // counter for the number of button presses
 int buttonState = 0;         // current state of the button
 int lastButtonState = 0;     // previous state of the button
@@ -46,6 +43,9 @@ void loop() {
     // Delay a little bit to avoid bouncing
     delay(50);
   }
+
+
+  
   // save the current state as the last state, for next time through the loop
   lastButtonState = buttonState;
       Serial.println(" "); 
@@ -61,12 +61,22 @@ void loop() {
       Serial.println(Vol_minus);
       Serial.println(Vol_minus, HEX);
 
+if(buttonPushCounter == 1){
+       Vol_plus=0;
+       Vol_minus=0;
+       vol1=false;
+       vol2=false;
+      irrecv.resume(); 
+  }
+
+  
 if(buttonPushCounter == 1 || buttonPushCounter == 2 || buttonPushCounter == 3){
   digitalWrite(ledPin, HIGH);
     delay(50);
     digitalWrite(ledPin, LOW);
     delay(50);
   }
+
   
 if (buttonPushCounter == 2 ) {
    Serial.println("stlacte + ");
@@ -76,7 +86,6 @@ if (buttonPushCounter == 2 ) {
 if (buttonPushCounter == 3 ) {
    Serial.println("stlacte - ");
    calibration_min();
-   
 }
 
   // turns on the LED every four button pushes by checking the modulo of the
@@ -106,7 +115,7 @@ if (buttonPushCounter == 3 ) {
     digitalWrite(ledPin, HIGH);
     delay(100);
     digitalWrite(ledPin, LOW);
-  buttonPushCounter=0;
+  buttonPushCounter=-1;
   }
 
 }
@@ -115,19 +124,9 @@ if (buttonPushCounter == 3 ) {
 void calibration_plu(){
   while( !(vol1 == true) ){            //program nepojde dalej dokial nedostane 2 signaly pre + a -
     
-  //  if ( (irrecv.decode(&signals)) && (vol1 == true) ) { // tato podmienka sa vykona druha az ked je splnena ta pod nou --> ulozi signal -
-   //   Vol_minus = signals.value;
-  //    Serial.println("vol minus");    //kontrola
-   //   Serial.println(Vol_minus);
-   //   Serial.println(Vol_minus, HEX);
-   //   vol2 = true;             //mam signal2
-   //   digitalWrite(2,LOW);    //ked dostane signal tak zhasne ledka na 1 sek
-   //   delay(1000);
-   //   
-   // }
-  
-    if ( (irrecv.decode(&signals)) && (vol1 == false)) { // tato podmienka sa vykona prva --> ulozi signal +
+    if ( (irrecv.decode(&signals))) { // tato podmienka sa vykona prva --> ulozi signal +
       Vol_plus = signals.value;
+       signals.value=0;
       Serial.println("vol plus");     //kontrola
       Serial.println(Vol_plus);
       Serial.println(Vol_plus, HEX);
@@ -135,39 +134,26 @@ void calibration_plu(){
       vol1 = true;             //mam signal1
       digitalWrite(2,LOW);    //ked dostane signal tak zhasne ledka na 1 sek
       delay(1000);
-    }
-    
+    }  
   }
-  
 }
 
 
 
-
 void  calibration_min(){
-  while( !((vol2 == true)) ){            //program nepojde dalej dokial nedostane 2 signaly pre + a -
+  while( !(vol2 == true) ){            //program nepojde dalej dokial nedostane 2 signaly pre + a -
     
-    if ( (irrecv.decode(&signals)) && (vol1 == true) ) { // tato podmienka sa vykona druha az ked je splnena ta pod nou --> ulozi signal -
+    if ( (irrecv.decode(&signals)) ) { // tato podmienka sa vykona druha az ked je splnena ta pod nou --> ulozi signal -
       Vol_minus = signals.value;
+      signals.value=0;
       Serial.println("vol minus");    //kontrola
       Serial.println(Vol_minus);
       Serial.println(Vol_minus, HEX);
+      irrecv.resume(); 
       vol2 = true;             //mam signal2
       digitalWrite(2,LOW);    //ked dostane signal tak zhasne ledka na 1 sek
       delay(1000);
-      
-    }
-  
-   // if ( (irrecv.decode(&signals)) && (vol1 == false)) { // tato podmienka sa vykona prva --> ulozi signal +
-    //  Vol_plus = signals.value;
-    //  Serial.println("vol plus");     //kontrola
-    //  Serial.println(Vol_plus);
-     // Serial.println(Vol_plus, HEX);
-    //  irrecv.resume();              // priprava na prijatie 2. signalu?
-    //  vol1 = true;             //mam signal1
-    //  digitalWrite(2,LOW);    //ked dostane signal tak zhasne ledka na 1 sek
-    //  delay(1000);
-    }
-    
+      }
+    } 
   }
   
