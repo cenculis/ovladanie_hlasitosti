@@ -4,19 +4,19 @@
 #include <EEPROM.h>
 
 int ReadPin=A1;    // mikrofon pin
-int hladinaa=A4;   // pomocna premenna pre spodnu hranicu
+float hladinaa=A4;   // pomocna premenna pre spodnu hranicu
 int cass=A5;       // pomocna premenna pre hornu hranicu 
 
 int input_pin = 2; // signalovy pin z IR prijimaca
 int button=4;      // button na spustenie kalibracie 
-
+int soundPlusCounter;
 int mic;           // vstup z mikrofonu
 int u;             // hladina max hodnot na danych intervaloch
 int Umaxval=610;   // pomocna premenna pri urcovani u - nastavena na hodnotu nulovej hladiny   
 int hlasitost=600; // pomocna premenna na simulovanie a vypisanie pridavania a uberania hlasitosti
 int cas;           // horna hranica ktora sa nastavuje pomocou potenciometra
-int hladina;       // spodna hranica ktora sa nastavuje pomocou potenciometra
-int maxval,minval; 
+float hladina;       // spodna hranica ktora sa nastavuje pomocou potenciometra
+float maxval,minval; 
 
 // cervena ledka pin 6 
 // modra ledka pin 8 
@@ -67,17 +67,21 @@ void loop() {
     calibration();
     vol1 = false;
     vol2 = false;
-    }
     
+    }
+    if(soundPlusCounter==15){
+      YieldDelay(10000);
+      soundPlusCounter=0;
+      }
   digitalWrite(8,LOW);
-  cas = map(analogRead(cass),0.00,1024.00,500.00,3000.00);  //zmena velkosti premennej pomocou funkcie map
-  hladina = map(analogRead(hladinaa),0,1024,0,50);          //zmena velkosti premennej pomocou funkcie map
+  cas = map(analogRead(cass),0.00,1024.00,100.00,3000.00);  //zmena velkosti premennej pomocou funkcie map
+  hladina = map(analogRead(hladinaa),0.0,1024.0,0.0,50.0);          //zmena velkosti premennej pomocou funkcie map
   mic=analogRead(ReadPin)+300;                              // +300 lebo moja nulova hodnota bola 500 a nechcelo sa mi vsetko prepisova :D 
   
   maxvolume(mic);
   volume(u);
-  maxval=600+(hladina*4);
-  minval=600+hladina;
+  maxval=620+(hladina*2.2);
+  minval=620+(hladina*1.2);
   period2= cas;
   
 //  Serial.print(hlasitost);
@@ -123,11 +127,12 @@ void maxvolume(int mic) {
 void volume(int u){
   if (u < minval){
      currentmill = millis();
-         if (currentmill - startmill >= period2)   // kontroluje ci dana podmienka bude platit aj po casovom intervale  period2
+         if (currentmill - startmill >= period2*4 && soundPlusCounter<15)   // kontroluje ci dana podmienka bude platit aj po casovom intervale  period2
            {
                   digitalWrite(8, HIGH);           //infoledka aby sme vedeli ze fungujeme 
-                  IrSender.sendNECRaw(Vol_plus , 0); //+ zvuk
-                  YieldDelay(200);
+                  IrSender.sendNEC(0x4,0x2,0); //+ zvuk
+                  soundPlusCounter++;
+                  YieldDelay(100);
                   digitalWrite(8, LOW);
             // hlasitost=hlasitost+10;
             // if (hlasitost==710) {hlasitost=700;}  //kontrola maximalnej hodnoty
@@ -141,8 +146,8 @@ if (u > maxval ){
          if (currentmill - startmill >= period2)  
            {
                 digitalWrite(6, HIGH);          //infoledka aby sme vedeli ze fungujeme 
-                IrSender.sendNECRaw(Vol_minus , 0);  //- zvuk
-                YieldDelay(200);
+               IrSender.sendNEC(0x4,0x3,0);  //- zvuk
+                YieldDelay(100);
                 digitalWrite(6, LOW);
            //  hlasitost=hlasitost-10;
            //  if (hlasitost==590) {hlasitost=600;} //kontrola maximalnej hodnoty
