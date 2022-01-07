@@ -80,7 +80,7 @@ void loop() {
   
   maxvolume(mic);
   volume(u);
-  maxval=800+(hladina);
+  maxval=795+(hladina);
   minval=750+(hladina);
   period2= cas;
   
