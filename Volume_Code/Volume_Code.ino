@@ -4,8 +4,8 @@
 #include <EEPROM.h>
 
 int ReadPin=A1;    // mikrofon pin
-float hladinaa=A4;   // pomocna premenna pre spodnu hranicu
-int cass=A5;       // pomocna premenna pre hornu hranicu 
+float hladinaa=A6;   // pomocna premenna pre spodnu hranicu
+int cass=A3;       // pomocna premenna pre hornu hranicu 
 
 int input_pin = 2; // signalovy pin z IR prijimaca
 int button=4;      // button na spustenie kalibracie 
@@ -75,13 +75,13 @@ void loop() {
       }
   digitalWrite(8,LOW);
   cas = map(analogRead(cass),0.00,1024.00,100.00,3000.00);  //zmena velkosti premennej pomocou funkcie map
-  hladina = map(analogRead(hladinaa),0.0,1024.0,0.0,50.0);          //zmena velkosti premennej pomocou funkcie map
+  hladina = map(analogRead(hladinaa),0.0,1024.0,0.0,100.0);          //zmena velkosti premennej pomocou funkcie map
   mic=analogRead(ReadPin)+300;                              // +300 lebo moja nulova hodnota bola 500 a nechcelo sa mi vsetko prepisova :D 
   
   maxvolume(mic);
   volume(u);
-  maxval=620+(hladina*2.2);
-  minval=620+(hladina*1.2);
+  maxval=800+(hladina);
+  minval=750+(hladina);
   period2= cas;
   
 //  Serial.print(hlasitost);
